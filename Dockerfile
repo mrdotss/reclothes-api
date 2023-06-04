@@ -1,5 +1,13 @@
 FROM php:8.2-fpm-alpine
 
+# Install system dependencies
+RUN apk add --no-cache nginx wget \
+    && apk add --no-cache freetype libpng libjpeg-turbo freetype-dev libpng-dev libjpeg-turbo-dev zip libzip-dev \
+    && apk add --no-cache $PHPIZE_DEPS \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && docker-php-ext-install pdo_mysql
+
 RUN apk add --no-cache nginx wget
 
 RUN mkdir -p /run/nginx

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+//use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -10,7 +10,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Ramsey\Uuid\Uuid;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable // implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -67,9 +67,9 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Get the cloth image associated with the user.
      */
-    public function clothImage(): HasMany
+    public function userCloths(): HasMany
     {
-        return $this->hasMany(ClothImage::class, 'user_id', 'id');
+        return $this->hasMany(UserCloth::class, 'user_id', 'id');
     }
 
     /**

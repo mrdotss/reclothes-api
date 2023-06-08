@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('transactions', function (Blueprint $table) {
+        Schema::create('user_cloths', function (Blueprint $table) {
             $table->uuid('id')
                 ->primary();
 
@@ -20,13 +20,8 @@ return new class extends Migration
                 ->references('id')
                 ->on('users');
 
-            $table->string('address', 150)->nullable();
-            $table->integer('total_selling_price')->nullable();
-            $table->integer('total_pickup_cost')->nullable();
-            $table->dateTime('pickup_date')->nullable();
-            $table->string('status', 15)->nullable();
-            $table->enum('account_type', ['bank', 'e-wallet', 'va'])->nullable();
-            $table->string('account_number', 25)->nullable();
+            $table->enum('amount_of_clothes', ['bulk', 'small']);
+
             $table->timestamps();
             $table->softDeletes();
         });
@@ -37,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('transactions');
+        Schema::dropIfExists('user_cloths');
     }
 };

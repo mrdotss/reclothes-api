@@ -19,7 +19,8 @@ class Cloth extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'type', 'description', 'is_ready',
+        'cloth_image_id','type',
+        'description', 'is_ready',
     ];
 
     /**

@@ -5,17 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Ramsey\Uuid\Uuid;
 
-class ClothImage extends Model
+class UserCloth extends Model
 {
     use HasFactory, SoftDeletes;
-
-    protected $append = [
-        'original_image',
-    ];
 
     /**
      * The attributes that are mass assignable.
@@ -23,24 +18,15 @@ class ClothImage extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'user_cloth_id', 'fabric_status',
-        'defects_proof', 'original_image',
+        'user_id', 'amount_of_clothes',
     ];
 
     /**
-     * Get the user associated with the cloth_image.
+     * Get the user associated with the user cloth.
      */
-    public function userCloth(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(UserCloth::class);
-    }
-
-    /**
-     * Get the cloth associated with the cloth_image.
-     */
-    public function cloth(): HasOne
-    {
-        return $this->hasOne(Cloth::class);
+        return $this->belongsTo(User::class);
     }
 
     /**

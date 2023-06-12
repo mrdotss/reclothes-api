@@ -54,7 +54,7 @@ class ClothController extends Controller
             $clothImage = ClothImage::create([
                 'user_cloth_id' => $request->user_cloth_id,
                 'original_image' => $response->data->fabric_file_name,
-                'defects_proof' => $response->data->defects_google_storage_url,
+                'defects_proof' => $response->data->defects_file_name,
                 'fabric_status' => $response->data->fabric_result->prediction,
             ]);
 

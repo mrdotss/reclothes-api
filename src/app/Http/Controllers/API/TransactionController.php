@@ -142,12 +142,12 @@ class TransactionController extends Controller
     public function getTransactionDetail(Request $request): object
     {
         try {
-            $transactionCheck = Transaction::where('id', $request->transaction_id)->first();
-            if (!$transactionCheck) {
-                return ResponseFormatter::error([
-                    'message' => 'Transaction not found',
-                ], 'Failed to get transaction detail', 404);
-            }
+//            $transactionCheck = Transaction::where('id', $request->transaction_id)->first();
+//            if (!$transactionCheck) {
+//                return ResponseFormatter::error([
+//                    'message' => 'Transaction not found',
+//                ], 'Failed to get transaction detail', 404);
+//            }
 //            $transactionItem = TransactionItem::with('cloth.clothImage')
 //                ->where('transaction_id', $request->transaction_id)
 //                ->get();
@@ -161,30 +161,27 @@ class TransactionController extends Controller
                 [$transactionId]
             );
 
+            DB::enableQueryLog();  // Enable query log
+
+            // Your query
             $query = DB::table('transaction_items')
                 ->join('cloths', 'transaction_items.cloth_id', '=', 'cloths.id')
                 ->join('cloth_images', 'cloths.cloth_image_id', '=', 'cloth_images.id')
                 ->where('transaction_items.transaction_id', '=', $transactionId)
-                ->toSql();
+                ->get();
 
-//            // check lenght of transactionItems is null or 0
-//            if (count($transactionItems) == 0) {
-//                return ResponseFormatter::error([
-//                    'query' => $query,
-//                    'transactionItems' => $transactionItems,
-//                    'message' => 'Transaction item not found',
-//                ], 'Failed to get transaction detail', 404);
-//            }
+            $log = DB::getQueryLog();  // Get the query log
 
             return ResponseFormatter::success([
                 'transactionId' => $transactionId,
-                'query' => $query,
+                'query' => end($log),  // Print the last query and its bindings
                 'transactionItem' => $transactionItem,
             ], 'Get transaction detail success');
         } catch (\Exception $e) {
             return ResponseFormatter::error([
                 'transactionId' => $transactionId,
-                'query' => $query,
+                'queryLog' => end($log),
+                'query' => $query, // Print the last query and its bindings
                 'message' => 'Something went wrong',
                 'error' => $e->getMessage(),
             ], 'Failed to get transaction detail', 500);

@@ -142,14 +142,17 @@ class TransactionController extends Controller
     public function getTransactionDetail(Request $request): object
     {
         try {
-//            $transactionCheck = Transaction::where('id', $request->transaction_id)->first();
-//            if (!$transactionCheck) {
-//                return ResponseFormatter::error([
-//                    'message' => 'Transaction not found',
-//                ], 'Failed to get transaction detail', 404);
-//            }
+            $transactionCheck = Transaction::where('id', $request->transaction_id)->first();
+            if (!$transactionCheck) {
+                return ResponseFormatter::error([
+                    'message' => 'Transaction not found',
+                ], 'Failed to get transaction detail', 404);
+            }
+//            $transactionItem = TransactionItem::with('cloth.clothImage')
+//                ->where('transaction_id', $request->transaction_id)
+//                ->get();
             $transactionId = $request->transaction_id; // Get the transaction ID from the request
-            $transactionItems = DB::select(
+            $transactionItem = DB::select(
                 "SELECT *
              FROM transaction_items
              INNER JOIN cloths ON transaction_items.cloth_id = cloths.id
@@ -158,27 +161,28 @@ class TransactionController extends Controller
                 [$transactionId]
             );
 
-            $query = DB::table('transaction_items')
-                ->join('cloths', 'transaction_items.cloth_id', '=', 'cloths.id')
-                ->join('cloth_images', 'cloths.cloth_image_id', '=', 'cloth_images.id')
-                ->where('transaction_items.transaction_id', '=', $transactionId)
-                ->toSql();
+//            $query = DB::table('transaction_items')
+//                ->join('cloths', 'transaction_items.cloth_id', '=', 'cloths.id')
+//                ->join('cloth_images', 'cloths.cloth_image_id', '=', 'cloth_images.id')
+//                ->where('transaction_items.transaction_id', '=', $transactionId)
+//                ->toSql();
 
-            // check lenght of transactionItems is null or 0
-            if (count($transactionItems) == 0) {
-                return ResponseFormatter::error([
-                    'query' => $query,
-                    'transactionItems' => $transactionItems,
-                    'message' => 'Transaction item not found',
-                ], 'Failed to get transaction detail', 404);
-            }
+//            // check lenght of transactionItems is null or 0
+//            if (count($transactionItems) == 0) {
+//                return ResponseFormatter::error([
+//                    'query' => $query,
+//                    'transactionItems' => $transactionItems,
+//                    'message' => 'Transaction item not found',
+//                ], 'Failed to get transaction detail', 404);
+//            }
 
             return ResponseFormatter::success([
 
-                'transactionItem' => $transactionItems,
+                'transactionItem' => $transactionItem,
             ], 'Get transaction detail success');
         } catch (\Exception $e) {
             return ResponseFormatter::error([
+                'query' => $transactionId,
                 'message' => 'Something went wrong',
                 'error' => $e->getMessage(),
             ], 'Failed to get transaction detail', 500);

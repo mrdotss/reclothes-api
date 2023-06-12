@@ -141,20 +141,21 @@ class TransactionController extends Controller
     public function getTransactionDetail(Request $request): object
     {
         try {
-            $transactionItem = TransactionItem::with('cloth.clothImage')
-                ->where('transaction_id', $request->transaction_id)
-                ->get();
-
-            if (!$transactionItem) {
+            $transactionCheck = Transaction::where('id', $request->transaction_id)->first();
+            if (!$transactionCheck) {
                 return ResponseFormatter::error([
                     'message' => 'Transaction not found',
                 ], 'Failed to get transaction detail', 404);
             }
-            if ($transactionItem->isEmpty()) {
-                return ResponseFormatter::error([
-                    'message' => 'Transaction item not found',
-                ], 'Failed to get transaction detail', 404);
-            }
+
+            $transactionItem = TransactionItem::with('cloth.clothImage')
+                ->where('transaction_id', $request->transaction_id)
+                ->get();
+//            if ($transactionItem->isEmpty()) {
+//                return ResponseFormatter::error([
+//                    'message' => 'Transaction item not found',
+//                ], 'Failed to get transaction detail', 404);
+//            }
 
             return ResponseFormatter::success([
 

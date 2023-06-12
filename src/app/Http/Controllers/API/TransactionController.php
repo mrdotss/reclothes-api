@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class TransactionController extends Controller
 {
@@ -147,19 +148,26 @@ class TransactionController extends Controller
 //                    'message' => 'Transaction not found',
 //                ], 'Failed to get transaction detail', 404);
 //            }
+            $transactionId = $request->transaction_id; // Get the transaction ID from the request
+            $transactionItems = DB::select(
+                "SELECT *
+             FROM transaction_items
+             INNER JOIN cloths ON transaction_items.cloth_id = cloths.id
+             INNER JOIN cloth_images ON cloths.cloth_image_id = cloth_images.id
+             WHERE transaction_items.transaction_id = ?",
+                [$transactionId]
+            );
 
-            $transactionItem = TransactionItem::with('cloth.clothImage')
-                ->where('transaction_id', $request->transaction_id)
-                ->get();
-//            if ($transactionItem->isEmpty()) {
-//                return ResponseFormatter::error([
-//                    'message' => 'Transaction item not found',
-//                ], 'Failed to get transaction detail', 404);
-//            }
+            // check lenght of transactionItems is null or 0
+            if (count($transactionItems) == 0) {
+                return ResponseFormatter::error([
+                    'message' => 'Transaction item not found',
+                ], 'Failed to get transaction detail', 404);
+            }
 
             return ResponseFormatter::success([
 
-                'transactionItem' => $transactionItem,
+                'transactionItem' => $transactionItems,
             ], 'Get transaction detail success');
         } catch (\Exception $e) {
             return ResponseFormatter::error([

@@ -21,6 +21,8 @@ return new class extends Migration
             $table->string('roles', 7);
             $table->string('address', 150)->nullable();
             $table->string('phone_number', 15)->nullable();
+            $table->string('account_type',30 )->nullable();
+            $table->string('account_number', 25)->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

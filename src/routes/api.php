@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\ClothController;
+use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\TransactionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -36,10 +37,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('transaction/create', [TransactionController::class, 'createTransaction']);
     Route::post('transaction/item/create', [TransactionController::class, 'createTransactionItem']);
     Route::put('transaction/update', [TransactionController::class, 'updateTransaction']);
-//    Route::get('transaction', [TransactionController::class, 'getTransaction']);
-//    Route::get('transaction/details', [TransactionController::class, 'getTransactionDetail']);
+    Route::get('transactions', [TransactionController::class, 'getTransaction']);
+    Route::get('transaction/details', [TransactionController::class, 'getTransactionDetail']);
 
-
-
+    // PaymentController Routes
+    Route::post('payment/create', [PaymentController::class, 'createPayment']);
+    Route::get('payments', [PaymentController::class, 'getPayments']);
 
 });

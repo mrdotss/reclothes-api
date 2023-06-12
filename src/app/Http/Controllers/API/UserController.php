@@ -95,6 +95,8 @@ class UserController extends Controller
             'name',
             'address',
             'phone_number',
+            'account_type',
+            'account_number',
         ]);
 
         if (!$user->update($data)) {

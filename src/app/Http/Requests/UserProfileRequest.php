@@ -30,6 +30,8 @@ class UserProfileRequest extends FormRequest
             'name' => ['string', 'max:255'],
             'address' => ['nullable', 'string', 'max:150'],
             'phone_number' => ['nullable', 'string', 'max:15'],
+            'account_type' => ['nullable', 'string', 'max:50'],
+            'account_number'=> ['nullable', 'string', 'max:25'],
         ];
     }
 

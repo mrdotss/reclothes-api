@@ -26,6 +26,8 @@ class User extends Authenticatable // implements MustVerifyEmail
         'roles',
         'address',
         'phone_number',
+        'account_type',
+        'account_number',
     ];
 
     /**
@@ -63,6 +65,15 @@ class User extends Authenticatable // implements MustVerifyEmail
     {
         return $this->hasMany(TransactionItem::class, 'user_id', 'id');
     }
+
+    /**
+     * Get the payment associated with the user.
+     */
+    public function payments()
+    {
+        return $this->hasManyThrough(Payment::class, Transaction::class);
+    }
+
 
     /**
      * Get the cloth image associated with the user.

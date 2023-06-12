@@ -30,8 +30,6 @@ return new class extends Migration
                 ->references('id')
                 ->on('users');
 
-            $table->float('weight');
-            $table->integer('quantity');
             $table->timestamps();
             $table->softDeletes();
         });

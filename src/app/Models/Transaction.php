@@ -21,8 +21,9 @@ class Transaction extends Model
      */
     protected $fillable = [
         'user_id',
-        'address', 'total_selling_price', 'total_shipping_cost',
-        'shipping_date', 'status', 'account_type', 'account_number',
+        'address', 'total_selling_price', 'total_pickup_cost',
+        'pickup_date', 'status', 'account_type', 'account_number',
+        'weight', 'quantity',
     ];
 
     /**

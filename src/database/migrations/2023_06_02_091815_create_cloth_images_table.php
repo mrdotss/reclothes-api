@@ -21,7 +21,6 @@ return new class extends Migration
                 ->on('user_cloths');
 
             $table->string('original_image', 150);
-            $table->string('defects_status')->nullable();
             $table->string('defects_proof', 150);
             $table->string('fabric_status', 25);
             $table->timestamps();

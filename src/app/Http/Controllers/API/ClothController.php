@@ -4,7 +4,6 @@ namespace App\Http\Controllers\API;
 
 use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Models\UserCloth;
 use App\Models\Cloth;
 use App\Models\ClothImage;
@@ -12,7 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 use Google\Cloud\Storage\StorageClient;
 
 class ClothController extends Controller
@@ -39,9 +37,7 @@ class ClothController extends Controller
 
     public function createClothImage(Request $request): object
     {
-        $user = Auth::user();
         try{
-
             $userCloth = UserCloth::where('id', $request->user_cloth_id)->first();
             if (!$userCloth) {
                 return ResponseFormatter::error([
@@ -57,15 +53,15 @@ class ClothController extends Controller
 
             $clothImage = ClothImage::create([
                 'user_cloth_id' => $request->user_cloth_id,
-                'original_image' => $response->data->file_name,
-                'defects_proof' => "OK",
-                'fabric_status' => $response->data->ore->prediction,
+                'original_image' => $response->data->fabric_file_name,
+                'defects_proof' => $response->data->defects_google_storage_url,
+                'fabric_status' => $response->data->fabric_result->prediction,
             ]);
 
             return ResponseFormatter::success([
                 "clothImage" => $clothImage,
-                'imageUrl' => $response->data->google_storage_url,
-                "imageHashName" => $response->data->file_name,
+                "fabricImageUrl" => $response->data->fabric_google_storage_url,
+                "defectsFileName" => $response->data->defects_file_name,
             ], 'Success upload cloth');
         } catch (\Exception $e) {
             return ResponseFormatter::error([
@@ -77,7 +73,6 @@ class ClothController extends Controller
 
     public function createCloth(Request $request): object
     {
-        $user = Auth::user();
         try {
 
             $clothImage = ClothImage::where('id', $request->cloth_image_id)->first();
@@ -108,9 +103,10 @@ class ClothController extends Controller
     public function uploadImage(UploadedFile $file): object
     {
         // Initialize Google Cloud Storage
-        $googleConfigFile = file_get_contents(config_path('../certs/bucket.json'));
+        $googleConfigFile = base64_decode(env('GOOGLE_CREDENTIALS'));
+        $keyFileArray = json_decode($googleConfigFile, true);
         $storage = new StorageClient([
-            'keyFile' => json_decode($googleConfigFile, true)
+            'keyFile' => $keyFileArray,
         ]);
 
         // Get the bucket
@@ -130,26 +126,72 @@ class ClothController extends Controller
         if (!$bucket->object($googleCloudStoragePath)->exists()) {
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
-            ], 'Failed to upload the file', 500);
+            ], 'Failed to upload the fabric file', 500);
         }
 
-        // Call the classifyImage function
-        $ore = $this->classifyImage($storageBucketName, $googleCloudStoragePath);
-        $getOre = json_decode($ore->body(), true);
+        // Call the model
+        $fabricClassify = $this->fabricClassification($storageBucketName, $googleCloudStoragePath);
+        $defectsPrediction = $this->defectsPrediction($storageBucketName, $googleCloudStoragePath);
+
+        // Get the response
+        $getFabricClassify = json_decode($fabricClassify->body(), true);
+        $getDefectsPrediction = json_decode($defectsPrediction->body(), true);
+
+        $base64_string  = $getDefectsPrediction["image_result"];
+
+        // Decode the base64 string
+        $image_data = base64_decode($base64_string);
+
+        $newFolderName = 'users-defects-cloths';
+
+        // Generate a random filename for the image
+        $newFileName = hash('sha256', $image_data . time()) . '.jpg';
+        $defectsGoogleCloudStoragePath = $newFolderName.'/'.$newFileName;
+        $bucket->upload(
+            $image_data,
+            [
+                'name' => $defectsGoogleCloudStoragePath,
+                'metadata' => [
+                    'cacheControl' => 'public, max-age=86400',
+                ],
+            ]
+        );
+
+        if (!$bucket->object($defectsGoogleCloudStoragePath)->exists()) {
+            return ResponseFormatter::error([
+                'message' => 'Something went wrong',
+            ], 'Failed to upload the defects file', 500);
+        }
 
         return ResponseFormatter::success([
-            "url" => url($googleCloudStoragePath),
-            "file_name" => $file->hashName(),
-            "ore" => $getOre,
-            "google_storage_url" => 'https://storage.googleapis.com/'.$storageBucketName.'/'.$googleCloudStoragePath
+            "fabric_url" => url($googleCloudStoragePath),
+            "fabric_file_name" => $file->hashName(),
+            "fabric_result" => $getFabricClassify,
+            "fabric_google_storage_url" => 'https://storage.googleapis.com/'.$storageBucketName.'/'.$googleCloudStoragePath,
+            "defects_url" => url($defectsGoogleCloudStoragePath),
+            "defects_file_name" => $newFileName,
+            "defects_google_storage_url" => 'https://storage.googleapis.com/'.$storageBucketName.'/'.$defectsGoogleCloudStoragePath,
         ], 'File uploaded successfully');
     }
 
-    public function classifyImage($bucketName, $objectName): object
+    public function fabricClassification($bucketName, $objectName): object
     {
-        $bucketConfig = json_decode(file_get_contents(config_path('../certs/bucket.json')), true);
+        $endpoint = 'https://asia-southeast1-recloth.cloudfunctions.net/preprocessing-fabric';
+        return $this->makeImageRequest($bucketName, $objectName, $endpoint);
+    }
+
+    public function defectsPrediction($bucketName, $objectName): object
+    {
+        $endpoint = 'https://asia-southeast1-recloth.cloudfunctions.net/pre-prost-processing-defects';
+        return $this->makeImageRequest($bucketName, $objectName, $endpoint);
+    }
+
+    private function makeImageRequest($bucketName, $objectName, $endpoint): object
+    {
+        $googleConfigFile = base64_decode(env('GOOGLE_CREDENTIALS'));
+        $keyFileArray = json_decode($googleConfigFile, true);
         $storage = new StorageClient([
-            'keyFile' => $bucketConfig,
+            'keyFile' => $keyFileArray,
         ]);
 
         $bucket = $storage->bucket($bucketName);
@@ -162,7 +204,7 @@ class ClothController extends Controller
 
         return Http::withHeaders([
             'x-secret-key' => env('SECRET_KEY'),
-        ])->post('https://asia-southeast1-recloth.cloudfunctions.net/preprocessing-fabric', [
+        ])->post($endpoint, [
             'image' => $base64ImageData,
         ]);
     }

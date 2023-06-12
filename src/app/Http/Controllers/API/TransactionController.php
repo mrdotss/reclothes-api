@@ -161,11 +161,11 @@ class TransactionController extends Controller
                 [$transactionId]
             );
 
-//            $query = DB::table('transaction_items')
-//                ->join('cloths', 'transaction_items.cloth_id', '=', 'cloths.id')
-//                ->join('cloth_images', 'cloths.cloth_image_id', '=', 'cloth_images.id')
-//                ->where('transaction_items.transaction_id', '=', $transactionId)
-//                ->toSql();
+            $query = DB::table('transaction_items')
+                ->join('cloths', 'transaction_items.cloth_id', '=', 'cloths.id')
+                ->join('cloth_images', 'cloths.cloth_image_id', '=', 'cloth_images.id')
+                ->where('transaction_items.transaction_id', '=', $transactionId)
+                ->toSql();
 
 //            // check lenght of transactionItems is null or 0
 //            if (count($transactionItems) == 0) {
@@ -177,12 +177,14 @@ class TransactionController extends Controller
 //            }
 
             return ResponseFormatter::success([
-
+                'transactionId' => $transactionId,
+                'query' => $query,
                 'transactionItem' => $transactionItem,
             ], 'Get transaction detail success');
         } catch (\Exception $e) {
             return ResponseFormatter::error([
-                'query' => $transactionId,
+                'transactionId' => $transactionId,
+                'query' => $query,
                 'message' => 'Something went wrong',
                 'error' => $e->getMessage(),
             ], 'Failed to get transaction detail', 500);

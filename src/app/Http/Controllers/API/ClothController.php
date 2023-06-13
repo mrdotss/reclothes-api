@@ -60,7 +60,7 @@ class ClothController extends Controller
 
             return ResponseFormatter::success([
                 "clothImage" => $clothImage,
-                "fabricImageUrl" => $response->data->fabric_google_storage_url,
+                "originalImageUrl" => $response->data->original_image_google_storage_url,
                 "defectsImageUrl" => $response->data->defects_google_storage_url,
             ], 'Success upload cloth');
         } catch (\Exception $e) {
@@ -167,7 +167,7 @@ class ClothController extends Controller
             "fabric_url" => url($googleCloudStoragePath),
             "fabric_file_name" => $file->hashName(),
             "fabric_result" => $getFabricClassify,
-            "fabric_google_storage_url" => 'https://storage.googleapis.com/'.$storageBucketName.'/'.$googleCloudStoragePath,
+            "original_image_google_storage_url" => 'https://storage.googleapis.com/'.$storageBucketName.'/'.$googleCloudStoragePath,
             "defects_url" => url($defectsGoogleCloudStoragePath),
             "defects_google_storage_url" => 'https://storage.googleapis.com/'.$storageBucketName.'/'.$defectsGoogleCloudStoragePath,
         ], 'File uploaded successfully');

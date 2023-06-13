@@ -169,6 +169,7 @@ class ClothController extends Controller
             "fabric_result" => $getFabricClassify,
             "original_image_google_storage_url" => 'https://storage.googleapis.com/'.$storageBucketName.'/'.$googleCloudStoragePath,
             "defects_url" => url($defectsGoogleCloudStoragePath),
+            "defects_file_name" => $newFileName,
             "defects_google_storage_url" => 'https://storage.googleapis.com/'.$storageBucketName.'/'.$defectsGoogleCloudStoragePath,
         ], 'File uploaded successfully');
     }
